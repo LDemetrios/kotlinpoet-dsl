@@ -21,6 +21,8 @@ public val UNSAFE_VARIANCE: AnnotationSpec = annotationSpecOf(ClassName("kotlin"
 
 public val PAIR: ClassName = ClassName("kotlin", "Pair")
 public val TRIPLE: ClassName = ClassName("kotlin", "Triple")
+public val ITERATOR: ClassName = ClassName("kotlin.collections", "Iterator")
+public val LIST_ITERATOR: ClassName = ClassName("kotlin.collections", "ListIterator")
 
 /*
 // \n((expect|open|annotation|data|fun|sealed|abstract|value) )*(class|interface|object|enum) [^\n]*

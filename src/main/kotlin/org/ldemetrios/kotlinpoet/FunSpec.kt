@@ -1,4 +1,6 @@
-@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class)
+@file:OptIn(
+    ExperimentalContracts::class
+)
 
 package org.ldemetrios.kotlinpoet
 
