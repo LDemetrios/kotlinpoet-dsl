@@ -1,7 +1,35 @@
 [![CircleCI](https://img.shields.io/circleci/build/gh/hanggrian/kotlinpoet-dsl)](https://app.circleci.com/pipelines/github/hanggrian/kotlinpoet-dsl/)
 [![Codecov](https://img.shields.io/codecov/c/gh/hanggrian/kotlinpoet-dsl)](https://app.codecov.io/gh/hanggrian/kotlinpoet-dsl/)
-[![Maven Central](https://img.shields.io/maven-central/v/com.hanggrian/kotlinpoet-dsl)](https://repo1.maven.org/maven2/com/hanggrian/kotlinpoet-dsl/)
 [![Java](https://img.shields.io/badge/java-8+-informational)](https://docs.oracle.com/javase/8/)
+
+# Why fork?
+
+There are a few updates to the library I would like to add, which require updating existent types. After I do, I'll update README and doc further. Here are brief plans:
+
+- Add incremental configuration possibility:
+  ```kt
+  primaryConstructor {
+      line1
+      line2
+  }
+
+  primaryConstructor {
+      line3
+      line4
+  }
+  ```
+  instead of only
+  ```kt
+  setPrimaryConstructor {
+      line1
+      line2
+      line3
+      line4
+  }
+  ```
+- Add some operator overloads
+- Add special functions for overloading popular functions from popular interfaces
+- Add a possibility to add val/var constructor parameters easily.
 
 # KotlinPoet DSL
 
