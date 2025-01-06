@@ -168,7 +168,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.iterator(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("iterator", ITERATOR(e), config = config)
+            overrideFun("iterator", COLLECTION_ITERATOR(e), config = config)
         }
 
         public fun TypeSpecBuilder.spliterator(config: FunSpecBuilder.() -> Unit) {
