@@ -41,9 +41,13 @@ public inline fun emptyConstructorFunSpec(): FunSpec =
  * Builds new [FunSpec] by populating newly created [FunSpecBuilder] using provided
  * [configuration].
  */
-public inline fun buildFunSpec(name: String, configuration: FunSpecBuilder.() -> Unit): FunSpec {
+public inline fun buildFunSpec(
+    name: String,
+    owner: TypeSpecBuilder? = null,
+    configuration: FunSpecBuilder.() -> Unit
+): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.builder(name))
+    return FunSpecBuilder(FunSpec.builder(name), owner)
         .apply(configuration)
         .build()
 }
@@ -54,10 +58,11 @@ public inline fun buildFunSpec(name: String, configuration: FunSpecBuilder.() ->
  */
 public inline fun buildFunSpec(
     name: MemberName,
+    owner: TypeSpecBuilder? = null,
     configuration: FunSpecBuilder.() -> Unit,
 ): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.builder(name))
+    return FunSpecBuilder(FunSpec.builder(name), owner)
         .apply(configuration)
         .build()
 }
@@ -66,9 +71,12 @@ public inline fun buildFunSpec(
  * Builds new constructor [FunSpec] by populating newly created [FunSpecBuilder] using provided
  * [configuration].
  */
-public inline fun buildConstructorFunSpec(configuration: FunSpecBuilder.() -> Unit): FunSpec {
+public inline fun buildConstructorFunSpec(
+    owner: TypeSpecBuilder? = null,
+    configuration: FunSpecBuilder.() -> Unit
+): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.constructorBuilder())
+    return FunSpecBuilder(FunSpec.constructorBuilder(), owner)
         .apply(configuration)
         .build()
 }
@@ -82,7 +90,7 @@ public inline fun FunSpecHandler.add(
     configuration: FunSpecBuilder.() -> Unit,
 ): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.builder(name))
+    return FunSpecBuilder(FunSpec.builder(name), this.owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -97,7 +105,7 @@ public inline fun FunSpecHandler.add(
     configuration: FunSpecBuilder.() -> Unit,
 ): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.builder(name))
+    return FunSpecBuilder(FunSpec.builder(name), owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -109,7 +117,7 @@ public inline fun FunSpecHandler.add(
  */
 public inline fun FunSpecHandler.addConstructor(configuration: FunSpecBuilder.() -> Unit): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.constructorBuilder())
+    return FunSpecBuilder(FunSpec.constructorBuilder(), owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -123,7 +131,7 @@ public inline fun TypeSpecBuilder.setPrimaryConstructor(
     configuration: FunSpecBuilder.() -> Unit,
 ): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.constructorBuilder())
+    return FunSpecBuilder(FunSpec.constructorBuilder(), this)
         .apply(configuration)
         .build()
         .also { primaryConstructor = it }
@@ -135,7 +143,7 @@ public inline fun TypeSpecBuilder.setPrimaryConstructor(
  */
 public inline fun PropertySpecBuilder.setGetter(configuration: FunSpecBuilder.() -> Unit): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.getterBuilder())
+    return FunSpecBuilder(FunSpec.getterBuilder(), owner)
         .apply(configuration)
         .build()
         .also { getter = it }
@@ -147,7 +155,7 @@ public inline fun PropertySpecBuilder.setGetter(configuration: FunSpecBuilder.()
  */
 public inline fun PropertySpecBuilder.setSetter(configuration: FunSpecBuilder.() -> Unit): FunSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return FunSpecBuilder(FunSpec.setterBuilder())
+    return FunSpecBuilder(FunSpec.setterBuilder(), owner)
         .apply(configuration)
         .build()
         .also { setter = it }
@@ -162,7 +170,7 @@ public fun FunSpecHandler.adding(
 ): SpecDelegateProvider<FunSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        FunSpecBuilder(FunSpec.builder(it))
+        FunSpecBuilder(FunSpec.builder(it), owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -171,6 +179,8 @@ public fun FunSpecHandler.adding(
 
 /** Responsible for managing a set of [FunSpec] instances. */
 public interface FunSpecHandler {
+    public val owner: TypeSpecBuilder?
+
     public fun add(function: FunSpec)
 
     public fun add(name: String): FunSpec = funSpecOf(name).also(::add)
@@ -202,7 +212,10 @@ public open class FunSpecHandlerScope private constructor(handler: FunSpecHandle
 
 /** Wrapper of [FunSpec.Builder], providing DSL support as a replacement to Java builder. */
 @KotlinPoetDsl
-public class FunSpecBuilder(private val nativeBuilder: FunSpec.Builder) {
+public class FunSpecBuilder(
+    private val nativeBuilder: FunSpec.Builder,
+    public val owner: TypeSpecBuilder? = null
+) {
     public val annotations: AnnotationSpecHandler =
         object : AnnotationSpecHandler {
             override fun add(annotation: AnnotationSpec) {
@@ -212,6 +225,8 @@ public class FunSpecBuilder(private val nativeBuilder: FunSpec.Builder) {
 
     public val parameters: ParameterSpecHandler =
         object : ParameterSpecHandler {
+            override val owner: TypeSpecBuilder? get() = this@FunSpecBuilder.owner
+
             override fun add(parameter: ParameterSpec) {
                 parameterSpecs += parameter
             }
@@ -229,7 +244,7 @@ public class FunSpecBuilder(private val nativeBuilder: FunSpec.Builder) {
     public inline fun parameters(configuration: ParameterSpecHandlerScope.() -> Unit) {
         contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
         ParameterSpecHandlerScope
-            .of(parameters)
+            .of(parameters, owner)
             .configuration()
     }
 

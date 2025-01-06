@@ -66,6 +66,8 @@ public class FileSpecBuilder(private val nativeBuilder: FileSpec.Builder) {
 
     public val functions: FunSpecHandler =
         object : FunSpecHandler {
+            override val owner: TypeSpecBuilder? get() = null
+
             override fun add(function: FunSpec) {
                 nativeBuilder.addFunction(function)
             }
@@ -73,6 +75,7 @@ public class FileSpecBuilder(private val nativeBuilder: FileSpec.Builder) {
 
     public val properties: PropertySpecHandler =
         object : PropertySpecHandler {
+            override val owner: TypeSpecBuilder? get() = null
             override fun add(property: PropertySpec) {
                 nativeBuilder.addProperty(property)
             }

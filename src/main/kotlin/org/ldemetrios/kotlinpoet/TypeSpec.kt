@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalContracts::class)
+@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class)
 
 package org.ldemetrios.kotlinpoet
 
@@ -584,19 +584,21 @@ public interface TypeSpecHandler {
 @KotlinPoetDsl
 public open class TypeSpecHandlerScope private constructor(handler: TypeSpecHandler) :
     TypeSpecHandler by handler {
-        public inline operator fun String.invoke(
-            configuration: TypeSpecBuilder.() -> Unit,
-        ): TypeSpec = addClass(this, configuration)
+    public inline operator fun String.invoke(
+        configuration: TypeSpecBuilder.() -> Unit,
+    ): TypeSpec = addClass(this, configuration)
 
-        public companion object {
-            public fun of(handler: TypeSpecHandler): TypeSpecHandlerScope =
-                TypeSpecHandlerScope(handler)
-        }
+    public companion object {
+        public fun of(handler: TypeSpecHandler): TypeSpecHandlerScope =
+            TypeSpecHandlerScope(handler)
     }
+}
 
 /** Wrapper of [TypeSpec.Builder], providing DSL support as a replacement to Java builder. */
 @KotlinPoetDsl
 public class TypeSpecBuilder(private val nativeBuilder: TypeSpec.Builder) {
+    internal val primaryConstructorConfigs = mutableListOf<FunSpecBuilder.() -> Unit>()
+
     public val annotations: AnnotationSpecHandler =
         object : AnnotationSpecHandler {
             override fun add(annotation: AnnotationSpec) {
@@ -606,6 +608,7 @@ public class TypeSpecBuilder(private val nativeBuilder: TypeSpec.Builder) {
 
     public val properties: PropertySpecHandler =
         object : PropertySpecHandler {
+            override val owner: TypeSpecBuilder get() = this@TypeSpecBuilder
             override fun add(property: PropertySpec) {
                 propertySpecs += property
             }
@@ -613,6 +616,8 @@ public class TypeSpecBuilder(private val nativeBuilder: TypeSpec.Builder) {
 
     public val functions: FunSpecHandler =
         object : FunSpecHandler {
+            override val owner: TypeSpecBuilder get() = this@TypeSpecBuilder
+
             override fun add(function: FunSpec) {
                 functionSpecs += function
             }

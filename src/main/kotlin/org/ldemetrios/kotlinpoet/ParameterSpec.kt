@@ -31,10 +31,11 @@ public inline fun buildParameterSpec(
     name: String,
     type: TypeName,
     vararg modifiers: KModifier,
+    owner: TypeSpecBuilder? = null,
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers))
+    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers), owner)
         .apply(configuration)
         .build()
 }
@@ -50,7 +51,7 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers))
+    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers), this.owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -67,7 +68,7 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers))
+    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers), this.owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -84,7 +85,7 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers))
+    return ParameterSpecBuilder(ParameterSpec.builder(name, type, *modifiers), this.owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -101,7 +102,7 @@ public fun ParameterSpecHandler.adding(
 ): SpecDelegateProvider<ParameterSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers))
+        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers), this.owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -119,7 +120,7 @@ public fun ParameterSpecHandler.adding(
 ): SpecDelegateProvider<ParameterSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers))
+        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers), this.owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -137,7 +138,7 @@ public fun ParameterSpecHandler.adding(
 ): SpecDelegateProvider<ParameterSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers))
+        ParameterSpecBuilder(ParameterSpec.builder(it, type, *modifiers), this.owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -156,6 +157,8 @@ public inline fun <reified T> ParameterSpecHandler.add(
 
 /** Responsible for managing a set of [ParameterSpec] instances. */
 public interface ParameterSpecHandler {
+    public val owner: TypeSpecBuilder?
+
     public fun add(parameter: ParameterSpec)
 
     public fun add(name: String, type: TypeName, vararg modifiers: KModifier): ParameterSpec =
@@ -191,7 +194,7 @@ public interface ParameterSpecHandler {
  * configuration.
  */
 @KotlinPoetDsl
-public open class ParameterSpecHandlerScope private constructor(handler: ParameterSpecHandler) :
+public open class ParameterSpecHandlerScope private constructor(handler: ParameterSpecHandler, public override val owner: TypeSpecBuilder?) :
     ParameterSpecHandler by handler {
         public inline operator fun String.invoke(
             type: TypeName,
@@ -212,14 +215,14 @@ public open class ParameterSpecHandlerScope private constructor(handler: Paramet
         ): ParameterSpec = add(this, type, *modifiers, configuration = configuration)
 
         public companion object {
-            public fun of(handler: ParameterSpecHandler): ParameterSpecHandlerScope =
-                ParameterSpecHandlerScope(handler)
+            public fun of(handler: ParameterSpecHandler,  owner: TypeSpecBuilder?): ParameterSpecHandlerScope =
+                ParameterSpecHandlerScope(handler, owner)
         }
     }
 
 /** Wrapper of [ParameterSpec.Builder], providing DSL support as a replacement to Java builder. */
 @KotlinPoetDsl
-public class ParameterSpecBuilder(private val nativeBuilder: ParameterSpec.Builder) {
+public class ParameterSpecBuilder(private val nativeBuilder: ParameterSpec.Builder, public val owner: TypeSpecBuilder?) {
     public val annotations: AnnotationSpecHandler =
         object : AnnotationSpecHandler {
             override fun add(annotation: AnnotationSpec) {

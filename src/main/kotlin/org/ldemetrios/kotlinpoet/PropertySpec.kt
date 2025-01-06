@@ -35,10 +35,11 @@ public inline fun buildPropertySpec(
     name: String,
     type: TypeName,
     vararg modifiers: KModifier,
+    owner : TypeSpecBuilder? = null,
     configuration: PropertySpecBuilder.() -> Unit,
 ): PropertySpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers))
+    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers), owner)
         .apply(configuration)
         .build()
 }
@@ -54,7 +55,7 @@ public inline fun PropertySpecHandler.add(
     configuration: PropertySpecBuilder.() -> Unit,
 ): PropertySpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers))
+    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers), owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -71,7 +72,7 @@ public inline fun PropertySpecHandler.add(
     configuration: PropertySpecBuilder.() -> Unit,
 ): PropertySpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers))
+    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers), owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -88,7 +89,7 @@ public inline fun PropertySpecHandler.add(
     configuration: PropertySpecBuilder.() -> Unit,
 ): PropertySpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers))
+    return PropertySpecBuilder(PropertySpec.builder(name, type, *modifiers), owner)
         .apply(configuration)
         .build()
         .also(::add)
@@ -105,7 +106,7 @@ public fun PropertySpecHandler.adding(
 ): SpecDelegateProvider<PropertySpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers))
+        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers), owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -123,7 +124,7 @@ public fun PropertySpecHandler.adding(
 ): SpecDelegateProvider<PropertySpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers))
+        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers), owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -141,7 +142,7 @@ public fun PropertySpecHandler.adding(
 ): SpecDelegateProvider<PropertySpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers))
+        PropertySpecBuilder(PropertySpec.builder(it, type, *modifiers), owner)
             .apply(configuration)
             .build()
             .also(::add)
@@ -160,6 +161,8 @@ public inline fun <reified T> PropertySpecHandler.add(
 
 /** Responsible for managing a set of [PropertySpec] instances. */
 public interface PropertySpecHandler {
+    public val owner : TypeSpecBuilder?
+
     public fun add(property: PropertySpec)
 
     public fun add(name: String, type: TypeName, vararg modifiers: KModifier): PropertySpec =
@@ -222,7 +225,7 @@ public open class PropertySpecHandlerScope private constructor(handler: Property
 
 /** Wrapper of [PropertySpec.Builder], providing DSL support as a replacement to Java builder. */
 @KotlinPoetDsl
-public class PropertySpecBuilder(private val nativeBuilder: PropertySpec.Builder) {
+public class PropertySpecBuilder(private val nativeBuilder: PropertySpec.Builder, public val owner : TypeSpecBuilder?) {
     public val annotations: AnnotationSpecHandler =
         object : AnnotationSpecHandler {
             override fun add(annotation: AnnotationSpec) {
