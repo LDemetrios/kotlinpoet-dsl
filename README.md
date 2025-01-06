@@ -28,7 +28,7 @@ There are a few updates to the library I would like to add, which require updati
   }
   ```
 - Add some operator overloads
-- Add special functions for overloading popular functions from popular interfaces
+- Add special functions for overriding popular methods from popular interfaces
 - Add a possibility to add val/var constructor parameters easily.
 
 # KotlinPoet DSL

@@ -6,6 +6,9 @@ package org.ldemetrios.kotlinpoet
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.DelicateKotlinPoetApi
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeName
+import com.squareup.kotlinpoet.WildcardTypeName
 import com.squareup.kotlinpoet.asClassName
 import kotlin.reflect.KClass
 
@@ -34,3 +37,9 @@ public inline fun classNamed(
     simpleName: String,
     vararg simpleNames: String,
 ): ClassName = ClassName(packageName, simpleName, *simpleNames)
+
+public operator fun ClassName.get(types: List<TypeName>): TypeName = invoke(*types.toTypedArray())
+public operator fun ClassName.invoke(vararg types: TypeName): TypeName = if (types.isEmpty()) this else this.parameterizedBy(*types)
+
+public operator fun TypeName.unaryPlus(): WildcardTypeName = WildcardTypeName.producerOf(this)
+public operator fun TypeName.unaryMinus(): WildcardTypeName = WildcardTypeName.consumerOf(this)

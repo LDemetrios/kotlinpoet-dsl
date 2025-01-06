@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalContracts::class)
+@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class)
 
 package org.ldemetrios.kotlinpoet
 
@@ -204,7 +204,15 @@ public open class FunSpecHandlerScope private constructor(handler: FunSpecHandle
             configuration: FunSpecBuilder.() -> Unit,
         ): FunSpec = add(this, configuration)
 
-        public companion object {
+        public inline operator fun String.invoke(
+            vararg modifiers : KModifier,
+            configuration: FunSpecBuilder.() -> Unit,
+        ): FunSpec = this.invoke{
+            addModifiers(*modifiers)
+            configuration()
+        }
+
+    public companion object {
             public fun of(handler: FunSpecHandler): FunSpecHandlerScope =
                 FunSpecHandlerScope(handler)
         }
