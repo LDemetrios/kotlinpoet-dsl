@@ -53,7 +53,12 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(name, type, ParameterSpec.builder(name, type, *modifiers), this.owner)
+    return ParameterSpecBuilder(
+        name,
+        type,
+        ParameterSpec.builder(name, type, *modifiers),
+        this.owner
+    )
         .apply(configuration)
         .build()
         .also(::add)
@@ -70,7 +75,12 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(name, type.asTypeName(), ParameterSpec.builder(name, type, *modifiers), this.owner)
+    return ParameterSpecBuilder(
+        name,
+        type.asTypeName(),
+        ParameterSpec.builder(name, type, *modifiers),
+        this.owner
+    )
         .apply(configuration)
         .build()
         .also(::add)
@@ -87,7 +97,12 @@ public inline fun ParameterSpecHandler.add(
     configuration: ParameterSpecBuilder.() -> Unit,
 ): ParameterSpec {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
-    return ParameterSpecBuilder(name, type.asTypeName(),ParameterSpec.builder(name, type, *modifiers), this.owner)
+    return ParameterSpecBuilder(
+        name,
+        type.asTypeName(),
+        ParameterSpec.builder(name, type, *modifiers),
+        this.owner
+    )
         .apply(configuration)
         .build()
         .also(::add)
@@ -122,7 +137,12 @@ public fun ParameterSpecHandler.adding(
 ): SpecDelegateProvider<ParameterSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        ParameterSpecBuilder(it, type.asTypeName(), ParameterSpec.builder(it, type, *modifiers), this.owner)
+        ParameterSpecBuilder(
+            it,
+            type.asTypeName(),
+            ParameterSpec.builder(it, type, *modifiers),
+            this.owner
+        )
             .apply(configuration)
             .build()
             .also(::add)
@@ -140,7 +160,12 @@ public fun ParameterSpecHandler.adding(
 ): SpecDelegateProvider<ParameterSpec> {
     contract { callsInPlace(configuration, InvocationKind.EXACTLY_ONCE) }
     return SpecDelegateProvider {
-        ParameterSpecBuilder(it, type.asTypeName(), ParameterSpec.builder(it, type, *modifiers), this.owner)
+        ParameterSpecBuilder(
+            it,
+            type.asTypeName(),
+            ParameterSpec.builder(it, type, *modifiers),
+            this.owner
+        )
             .apply(configuration)
             .build()
             .also(::add)
@@ -235,9 +260,9 @@ public class ParameterSpecBuilder(
     internal val type: TypeName,
     private val nativeBuilder: ParameterSpec.Builder, public val owner: TypeSpecBuilder?
 ) {
-    public fun addAsVal() {
+    private fun addAsProp(kw: String, mutable: Boolean, config: PropertySpecBuilder.() -> Unit) {
         val own = owner
-            ?: throw AssertionError("Can't add $name as a `val`, as it's in a top-level function")
+            ?: throw AssertionError("Can't add $name as a `$kw`, as it's in a top-level function")
         own.properties {
             add(
                 this@ParameterSpecBuilder.name,
@@ -245,23 +270,18 @@ public class ParameterSpecBuilder(
                 *this@ParameterSpecBuilder.nativeBuilder.modifiers.toTypedArray()
             ) {
                 setInitializer("%L", this@ParameterSpecBuilder.name)
+                isMutable = mutable
+                config()
             }
         }
     }
 
-    public fun addAsVar() {
-        val own = owner
-            ?: throw AssertionError("Can't add $name as a `var`, as it's in a top-level function")
-        own.properties {
-            add(
-                this@ParameterSpecBuilder.name,
-                this@ParameterSpecBuilder.type,
-                *this@ParameterSpecBuilder.nativeBuilder.modifiers.toTypedArray()
-            ) {
-                setInitializer("%L", this@ParameterSpecBuilder.name)
-                isMutable = true
-            }
-        }
+    public fun addAsVal(config: PropertySpecBuilder.() -> Unit = {}) {
+        addAsProp("val", false, config)
+    }
+
+    public fun addAsVar(config: PropertySpecBuilder.() -> Unit = {}) {
+        addAsProp("val", true, config)
     }
 
     public val annotations: AnnotationSpecHandler =

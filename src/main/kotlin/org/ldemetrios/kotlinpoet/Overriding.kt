@@ -7,7 +7,7 @@ import com.squareup.kotlinpoet.TypeName
 import java.util.function.IntFunction
 import java.util.stream.IntStream
 
-public fun TypeSpecBuilder.overrideProp(
+internal fun TypeSpecBuilder.overrideProp(
     name: String,
     type: TypeName,
     config: PropertySpecBuilder.() -> Unit
@@ -15,20 +15,20 @@ public fun TypeSpecBuilder.overrideProp(
     name(type, OVERRIDE, configuration = config)
 }
 
-public data class InternalParameterRepr(
+internal data class InternalParameterRepr(
     val name: String,
     val type: TypeName,
     val modifiers: Array<out KModifier>,
     val configuration: ParameterSpecBuilder.() -> Unit,
 )
 
-public operator fun String.invoke(
+internal operator fun String.invoke(
     type: TypeName,
     vararg modifiers: KModifier,
     configuration: ParameterSpecBuilder.() -> Unit = {},
 ): InternalParameterRepr = InternalParameterRepr(this, type, modifiers, configuration)
 
-public fun TypeSpecBuilder.overrideFun(
+internal fun TypeSpecBuilder.overrideFun(
     name: String,
     returnType: TypeName,
     vararg params: InternalParameterRepr,
@@ -75,7 +75,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.containsValue(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("containsValue", BOOLEAN, "value"(v), config = config)
+            overrideFun("containsValue", BOOLEAN, "value"(v.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.get(config: FunSpecBuilder.() -> Unit) {
@@ -83,7 +83,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.getOrDefault(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("getOrDefault", v, "key"(k) {}, "defaultValue"(v) {}, config = config)
+            overrideFun("getOrDefault", v, "key"(k) {}, "defaultValue"(v.annotate(UNSAFE_VARIANCE)) {}, config = config)
         }
 
         public fun TypeSpecBuilder.isEmpty(config: FunSpecBuilder.() -> Unit) {
@@ -172,7 +172,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.spliterator(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("spliterator", SPLITERATOR(e), config = config)
+            overrideFun("spliterator", SPLITERATOR(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.size(config: PropertySpecBuilder.() -> Unit) {
@@ -180,11 +180,11 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.contains(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("contains", BOOLEAN, "element"(e), config = config)
+            overrideFun("contains", BOOLEAN, "element"(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.containsAll(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("containsAll", BOOLEAN, "elements"(COLLECTION(e)), config = config)
+            overrideFun("containsAll", BOOLEAN, "elements"(COLLECTION(e.annotate(UNSAFE_VARIANCE))), config = config)
         }
 
         public fun TypeSpecBuilder.get(config: FunSpecBuilder.() -> Unit) {
@@ -200,7 +200,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.indexOf(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("indexOf", INT, "element"(e), config = config)
+            overrideFun("indexOf", INT, "element"(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.isEmpty(config: FunSpecBuilder.() -> Unit) {
@@ -208,7 +208,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.lastIndexOf(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("lastIndexOf", INT, "element"(e), config = config)
+            overrideFun("lastIndexOf", INT, "element"(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.listIterator(config: FunSpecBuilder.() -> Unit) {
@@ -220,7 +220,7 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.reversed(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("reversed", MUTABLE_LIST(e), config = config)
+            overrideFun("reversed", LIST(e), config = config)
         }
 
         public fun TypeSpecBuilder.subList(config: FunSpecBuilder.() -> Unit) {
@@ -228,11 +228,11 @@ public object overriding {
         }
 
         public fun TypeSpecBuilder.parallelStream(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("parallelStream", STREAM(e), config = config)
+            overrideFun("parallelStream", STREAM(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.stream(config: FunSpecBuilder.() -> Unit) {
-            overrideFun("stream", STREAM(e), config = config)
+            overrideFun("stream", STREAM(e.annotate(UNSAFE_VARIANCE)), config = config)
         }
 
         public fun TypeSpecBuilder.toArray(config: FunSpecBuilder.() -> Unit) {
